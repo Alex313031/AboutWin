@@ -9,6 +9,7 @@ Thumbs.db
 *.tlog
 *.vs/
 /.vs/
+/.idea/
 *.rsuser
 *.suo
 *.user
@@ -28,5 +29,4 @@ Thumbs.db
 /x64/
 /Debug/
 /Release/
-/release/
-xp_activate32.exe
+about_win.exe
