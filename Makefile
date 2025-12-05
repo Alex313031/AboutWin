@@ -34,13 +34,11 @@ DEFINES  := -DUNICODE -D_UNICODE -D_WINDOWS -DWINVER=0x0501 -D_WIN32_WINNT=0x050
 # since this is a GUI windows app, ensure relocatable data
 CFLAGS   := $(DEFINES) -Wall -static -static-libgcc -municode
 
-ifeq ($(BUILDTYPE), Release)
 # Compiler optimization and architecture flags
+ifeq ($(BUILDTYPE), Release)
 CFLAGS   += -O2 -g0 -s -MMD -MP -mfpmath=sse -mfxsr -msse -msse2
 endif
-
 ifeq ($(BUILDTYPE), Debug)
-# Compiler optimization and architecture flags
 CFLAGS   += -Og -g -MMD -MP -mfpmath=sse -mfxsr -msse -msse2
 endif
 
