@@ -1,180 +1,170 @@
-// AboutWin.cpp : Defines the entry point for the application.
-//
+// about_win.cc : Defines the entry point for the application, handles the window
+// class and window messages, and initializes any global variables..
+
+#include "about_win.h"
 
 #include "framework.h"
-#include "AboutWin.h"
 
-#define MAX_LOADSTRING 100
+HINSTANCE hInst;
 
-// Global Variables:
-HINSTANCE hInst;                                // current instance
-WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
-WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+// The main entry point, equivalent to int main()
+int APIENTRY wWinMain(HINSTANCE hInstance,
+                      HINSTANCE hPrevInstance,
+                      LPWSTR    lpCmdLine,
+                      int       nCmdShow) {
+  // Contains HINSTANCE from previous running instance, unused.
+  UNREFERENCED_PARAMETER(hPrevInstance);
 
-// Forward declarations of functions included in this code module:
-ATOM                MyRegisterClass(HINSTANCE hInstance);
-BOOL                InitInstance(HINSTANCE, int);
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+  // Initialize global strings.
+  LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
+  LoadStringW(hInstance, IDC_ABOUTWIN, szWindowClass, MAX_LOADSTRING);
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
-{
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
+  // Create and register the window class.
+  RegisterWndClass(hInstance);
 
-    // TODO: Place code here.
+  // Perform application initialization.
+  if (!InitInstance(hInstance, nCmdShow)) {
+    return FALSE;
+  }
 
-    // Initialize global strings
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_ABOUTWIN, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
+  // Load keyboard accelerators.
+  HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_ABOUTWIN));
 
-    // Perform application initialization:
-    if (!InitInstance (hInstance, nCmdShow))
-    {
-        return FALSE;
+  MSG msg;
+  // Main window message loop:
+  while (GetMessage(&msg, nullptr, 0, 0)) {
+    if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) {
+      TranslateMessage(&msg);
+      DispatchMessage(&msg);
     }
+  }
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_ABOUTWIN));
-
-    MSG msg;
-
-    // Main message loop:
-    while (GetMessage(&msg, nullptr, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
-
-    return (int) msg.wParam;
+  return static_cast<int>(msg.wParam);
 }
 
+// Register the WNDCLASSEXW structure
+ATOM RegisterWndClass(HINSTANCE hInstance) {
+  // Declare and set size of this window class struct.
+  WNDCLASSEXW wcex;
+  wcex.cbSize = sizeof(WNDCLASSEX);
 
+  // Set styles, icons, and window message handling function.  
+  wcex.style          = CS_HREDRAW | CS_VREDRAW; // Drawing style
+  wcex.lpfnWndProc    = WndProc; // Window Procedure function
+  wcex.cbClsExtra     = 0; // Extra bytes to add to end of this window class
+  wcex.cbWndExtra     = 0; // Extra bytes to add to end hInstance
+  wcex.hInstance      = hInstance; // This instance
+  wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ABOUTWIN)); // Load our main app icon
+  wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW); // Choose default cursor style to show
+  wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1); // Choose window client area background color
+  wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_ABOUTWIN); // Attach menu to window
+  wcex.lpszClassName  = szWindowClass; // Use our unique window class name
+  wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL)); // Load titlebar icon
 
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
-ATOM MyRegisterClass(HINSTANCE hInstance)
-{
-    WNDCLASSEXW wcex;
-
-    wcex.cbSize = sizeof(WNDCLASSEX);
-
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ABOUTWIN));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_ABOUTWIN);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-
-    return RegisterClassExW(&wcex);
+  // Returns a "class atom", a win32 specific data type.
+  return RegisterClassExW(&wcex);
 }
 
-//
-//   FUNCTION: InitInstance(HINSTANCE, int)
-//
-//   PURPOSE: Saves instance handle and creates main window
-//
-//   COMMENTS:
-//
-//        In this function, we save the instance handle in a global variable and
-//        create and display the main program window.
-//
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
-{
-   hInst = hInstance; // Store instance handle in our global variable
+// Saves global instance handle and creates the main window.
+BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
+  hInst = hInstance; // Store instance handle in our global variable
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+  // The all important Win32 function that every GUI app must have to create
+  // the Window.
+  HWND hWnd = CreateWindowW(szWindowClass,
+                            szTitle,
+                            WS_OVERLAPPEDWINDOW,
+                            CW_USEDEFAULT,
+                            0,
+                            CW_USEDEFAULT,
+                            0,
+                            nullptr,
+                            nullptr,
+                            hInstance,
+                            nullptr);
 
-   if (!hWnd)
-   {
-      return FALSE;
-   }
+  // Early fail if we can't create the window.
+  if (!hWnd) {
+    return false;
+  }
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+  // Actually show the window (or hide it).
+  ShowWindow(hWnd, nCmdShow);
+  // Start painting by sending the WM_PAINT message
+  UpdateWindow(hWnd);
 
-   return TRUE;
+  // Sucessfully created the window
+  return true;
 }
 
-//
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE: Processes messages for the main window.
+//  Processes window messages for the main window.
 //
 //  WM_COMMAND  - process the application menu
 //  WM_PAINT    - Paint the main window
 //  WM_DESTROY  - post a quit message and return
-//
-//
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message)
-    {
-    case WM_COMMAND:
-        {
-            int wmId = LOWORD(wParam);
-            // Parse the menu selections:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-        }
-        break;
-    case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: Add any drawing code that uses hdc here...
-            EndPaint(hWnd, &ps);
-        }
-        break;
+//  WM_RESIZE   - Handle window resizing
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+  switch (message) {
+    case WM_COMMAND: {
+      int wmId = LOWORD(wParam);
+      // Parse the menu selections:
+      switch (wmId) {
+        case IDM_ABOUT:
+          // Show "About" dialog box
+          DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+          break;
+        case IDM_EXIT:
+          // Send WM_DESTROY message to close window 
+          DestroyWindow(hWnd);
+          break;
+        default:
+          return DefWindowProc(hWnd, message, wParam, lParam);
+      }
+    } break;
+    case WM_PAINT: {
+      PAINTSTRUCT ps;
+      HDC hdc = BeginPaint(hWnd, &ps);
+      // TODO: Add any drawing code that uses hdc here...
+      EndPaint(hWnd, &ps);
+    } break;
     case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
+      // Exit the application
+      PostQuitMessage(0);
+      break;
+    // Fall through to DefWindowProc, any unhandled messages will be sent here
+    // and Windows will decide what to do with it.
     default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-    return 0;
+      return DefWindowProc(hWnd, message, wParam, lParam);
+  }
+  return 0;
 }
 
-// Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
+// Processes window messages for the "About" dialog box window procedure.
+INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+  UNREFERENCED_PARAMETER(lParam);
 
+  bool AboutHandled = false;
+  switch (message) {
+    case WM_INITDIALOG:
+      // Showed the dialog
+      AboutHandled = true;
+      break;
     case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
+      // Exit the dialog
+      if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) {
+        if (EndDialog(hDlg, LOWORD(wParam))) {
+          AboutHandled = true;
+          return (INT_PTR)AboutHandled;
+        } else {
+          AboutHandled = false;
+          break;
         }
-        break;
-    }
-    return (INT_PTR)FALSE;
+      } break;
+    default:
+      AboutHandled = false;
+      break;
+  }
+
+  // About dialog failed
+  return (INT_PTR)AboutHandled;
 }
