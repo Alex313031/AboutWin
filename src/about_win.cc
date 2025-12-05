@@ -33,6 +33,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
   fNonExistFile = freopen("CONOUT$", "w", stdout); // Standard error
   fNonExistFile = freopen("CONOUT$", "w", stderr); // Standard out
 #endif // __MINGW32__
+  if (!fNonExistFile) {
+    return 1;
+  }
 
   // Initialize global strings.
   LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
