@@ -26,7 +26,7 @@
 
 // For resources to be loaded without an ID from the system.
 #ifndef IDC_STATIC
- #define IDC_STATIC				          -1
+ #define IDC_STATIC				         -1
 #endif // IDC_STATIC
 
 #ifdef APP_MANIFEST

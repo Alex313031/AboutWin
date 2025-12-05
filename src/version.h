@@ -42,17 +42,17 @@
 
 // These next few lines are where we control version number and copyright year
 // Adhere to semver > semver.org
-#define MAJOR_VERSION 1
+#define MAJOR_VERSION 0
 #define MINOR_VERSION 0
-#define BUILD_VERSION 0
+#define BUILD_VERSION 1
 
 #define MAIN_TITLE L"AboutWin"
 
 #ifndef VERSION_STRING
  #define VERSION_STRING _VERSION(MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION)
  #define ABOUT_TITLE L"About AboutWin"
- #define ABOUT_COPYRIGHT L"Copyright © 2025 Alex313031"
- #define LEGAL_COPYRIGHT L"© 2025"
+ #define ABOUT_COPYRIGHT L"Copyright \251 2025 Alex313031" // \251 is the © symbol
+ #define LEGAL_COPYRIGHT L"\251 2025 Alex313031"
 #endif // VERSION_STRING
 
 #endif // ABOUT_WIN_VERSION_H_
