@@ -18,15 +18,21 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
   // Import ComCtl32.dll
   InitCommonControls();
 
-  // Allow and allocate conhost
+  // Allow and allocate conhost for cmd.exe logging window
   if (!AllocConsole()) {
     return 1;
   }
 
   // File handler pointer to a dummy file, possibly an actual logfile
   FILE* fNonExistFile = fDummyFile;
-  //freopen_s(&fNonExistFile, "CONOUT$", "w", stdout); // Standard error
-  //freopen_s(&fNonExistFile, "CONOUT$", "w", stderr); // Standard out
+#ifndef __MINGW32__
+  freopen_s(&fNonExistFile, "CONOUT$", "w", stdout); // Standard error
+  freopen_s(&fNonExistFile, "CONOUT$", "w", stderr); // Standard out
+#else
+  // freopen_s doesn't exist in MinGW...
+  fNonExistFile = freopen("CONOUT$", "w", stdout); // Standard error
+  fNonExistFile = freopen("CONOUT$", "w", stderr); // Standard out
+#endif // __MINGW32__
 
   // Initialize global strings.
   LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
