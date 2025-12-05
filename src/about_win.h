@@ -23,6 +23,9 @@ static WCHAR szTitle[MAX_LOADSTRING];
 // The main window class name
 static WCHAR szWindowClass[MAX_LOADSTRING];
 
+// Dummy file output for conhost
+static FILE* fDummyFile;
+
 /* End of global variables */
 
 /* Forward declarations of functions included in this translation unit. */

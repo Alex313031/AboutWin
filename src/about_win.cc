@@ -15,6 +15,19 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
   // Contains HINSTANCE from previous running instance, unused.
   UNREFERENCED_PARAMETER(hPrevInstance);
 
+  // Import ComCtl32.dll
+  InitCommonControls();
+
+  // Allow and allocate conhost
+  if (!AllocConsole()) {
+    return 1;
+  }
+
+  // File handler pointer to a dummy file, possibly an actual logfile
+  FILE* fNonExistFile = fDummyFile;
+  //freopen_s(&fNonExistFile, "CONOUT$", "w", stdout); // Standard error
+  //freopen_s(&fNonExistFile, "CONOUT$", "w", stderr); // Standard out
+
   // Initialize global strings.
   LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
   LoadStringW(hInstance, IDC_ABOUTWIN, szWindowClass, MAX_LOADSTRING);

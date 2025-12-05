@@ -29,6 +29,12 @@
  #define IDC_STATIC				          -1
 #endif // IDC_STATIC
 
+#ifdef APP_MANIFEST
+ #warning "APP_MANIFEST" should not already be defined
+#else
+ #define APP_MANIFEST               1
+#endif // APP_MANIFEST
+
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED
