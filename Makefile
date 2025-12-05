@@ -41,7 +41,7 @@ endif
 
 ifeq ($(BUILDTYPE), Debug)
 # Compiler optimization and architecture flags
-CFLAGS   += -Og -g -MMD -MP -mfpmath=sse
+CFLAGS   += -Og -g -MMD -MP -mfpmath=sse -mfxsr -msse -msse2
 endif
 
 # C++ only flags

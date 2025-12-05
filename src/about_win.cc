@@ -67,6 +67,7 @@ ATOM RegisterWndClass(HINSTANCE hInstance) {
 
 // Saves global instance handle and creates the main window.
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
+  bool success; // 
   hInst = hInstance; // Store instance handle in our global variable
 
   // The all important Win32 function that every GUI app must have to create
@@ -85,15 +86,19 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
 
   // Early fail if we can't create the window.
   if (!hWnd) {
-    return false;
+    success = false;
+  } else {
+    // Actually show the window (or hide it).
+    success = ShowWindow(hWnd, nCmdShow);
+
+    // If we showed the window, now the status will be set 
+    if (success) {
+      // Sucessfully created the window
+      success = UpdateWindow(hWnd); // Start painting by sending the WM_PAINT message
+    }
   }
 
-  // Actually show the window (or hide it).
-  ShowWindow(hWnd, nCmdShow);
-  // Start painting by sending the WM_PAINT message
-  UpdateWindow(hWnd);
-
-  // Sucessfully created the window
+  
   return true;
 }
 
@@ -125,6 +130,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       PAINTSTRUCT ps;
       HDC hdc = BeginPaint(hWnd, &ps);
       // TODO: Add any drawing code that uses hdc here...
+      if (hdc) {
+      }
       EndPaint(hWnd, &ps);
     } break;
     case WM_DESTROY:
@@ -143,7 +150,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
   UNREFERENCED_PARAMETER(lParam);
 
-  bool AboutHandled = false;
+  bool AboutHandled = false; // Stores status of whether dialog has been handled user-wise.
   switch (message) {
     case WM_INITDIALOG:
       // Showed the dialog
