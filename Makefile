@@ -7,7 +7,7 @@ LD       := i686-w64-mingw32-g++
 RC       := i686-w64-mingw32-windres
 
 # Targets
-NAME     := AboutWin
+NAME     := about_win
 TARGET   := about_win.exe
 
 # Build type: choose Debug or Release
@@ -57,7 +57,7 @@ LDFLAGS  := $(LIBS) -static -municode -Wl,--subsystem,windows
 # Build Commands #
 
 # Build everything
-all: $(NAME)
+all: $(TARGET)
 
 # The only target for now is about_win.exe
 $(NAME): $(TARGET)
@@ -84,5 +84,9 @@ $(TARGET): $(OBJ_C) $(OBJ_CPP) $(OBJ_RC)
 clean:
 	rm -f -v $(OBJ_C) $(OBJ_CPP) $(OBJ_RC) $(OBJ_C:.o=.d) $(OBJ_CPP:.o=.d) $(TARGET)
 
-# PHONY targets
-.PHONY: all clean
+# Testing rules #
+test:
+	cat $(TARGET)
+
+# PHONY targets for build deps tracking
+.PHONY: all $(NAME) clean test

@@ -46,11 +46,10 @@
 #define MINOR_VERSION 0
 #define BUILD_VERSION 1
 
-#define MAIN_TITLE L"AboutWin"
-
 #ifndef VERSION_STRING
  #define VERSION_STRING _VERSION(MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION)
  #define ABOUT_TITLE L"About AboutWin"
+ #define ABOUT_CONTENT L"AboutWin ver. " VERSION_STRING
  #define ABOUT_COPYRIGHT L"Copyright \251 2025 Alex313031" // \251 is the © symbol
  #define LEGAL_COPYRIGHT L"\251 2025 Alex313031"
 #endif // VERSION_STRING

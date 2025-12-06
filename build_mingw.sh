@@ -4,4 +4,4 @@
 
 export HERE=${PWD}
 
-make clean && make all -j 4 $@
+make -b all -j 4 $@
