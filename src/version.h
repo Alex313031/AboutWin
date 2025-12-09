@@ -44,7 +44,7 @@
 // Adhere to semver > semver.org
 #define MAJOR_VERSION 0
 #define MINOR_VERSION 0
-#define BUILD_VERSION 1
+#define BUILD_VERSION 2
 
 #ifndef VERSION_STRING
  #define VERSION_STRING _VERSION(MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION)
