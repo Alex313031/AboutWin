@@ -91,7 +91,7 @@ ATOM RegisterWndClass(HINSTANCE hInstance) {
 
 // Saves global instance handle and creates the main window.
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
-  bool success; // 
+  bool success = false; // 
   hInst = hInstance; // Store instance handle in our global variable
 
   // The all important Win32 function that every GUI app must have to create
@@ -113,17 +113,14 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
     success = false;
   } else {
     // Actually show the window (or hide it).
-    success = ShowWindow(hWnd, nCmdShow);
+    ShowWindow(hWnd, nCmdShow);
 
-    // If we showed the window, now the status will be set 
-    if (success) {
-      // Sucessfully created the window
-      success = UpdateWindow(hWnd); // Start painting by sending the WM_PAINT message
-    }
+    // Sucessfully created the window
+    success = UpdateWindow(hWnd); // Start painting by sending the WM_PAINT message
   }
 
   
-  return true;
+  return success;
 }
 
 //  Processes window messages for the main window.
