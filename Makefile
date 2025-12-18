@@ -29,7 +29,7 @@ OBJ_CPP  := $(SRC_CPP:.cc=.o)
 OBJ_RC   := $(SRC_RC:.rc=.res)
 
 # Compiler flags #
-DEFINES  := -DUNICODE -D_UNICODE -D_WINDOWS -DWINVER=0x0501 -D_WIN32_WINNT=0x0501 -D_WIN64_WINNT=0x0502 -D_WIN32_IE=0x0600 -DPSAPI_VERSION=1
+DEFINES  := -DUNICODE -D_UNICODE -D_WINDOWS -DWINVER=0x0500 -D_WIN32_WINNT=0x0500 -D_WIN64_WINNT=0x0502 -D_WIN32_IE=0x0501
 # Show all errors, compile everything static, ensure src dir is included, -municode
 # since this is a GUI windows app, ensure relocatable data
 CFLAGS   := $(DEFINES) -Wall -static -static-libgcc -municode
@@ -48,7 +48,7 @@ CXXFLAGS := $(CFLAGS) -std=c++17 -static-libstdc++
 # Libraries
 LIBS     := -lkernel32 -luser32 -lcomctl32 -lcomdlg32 -lshell32 -lgdi32 -ladvapi32 -lole32 -loleaut32 -lodbc32 -lodbccp32 -luuid -lversion
 # Linker flags
-LDFLAGS  := $(LIBS) -static -municode -Wl,--subsystem,windows
+LDFLAGS  := $(LIBS) -static -municode -Wl,--subsystem,windows:5.00
 
 # Include generated dependency files
 -include $(OBJ_C:.o=.d)
