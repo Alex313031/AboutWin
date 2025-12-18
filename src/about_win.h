@@ -30,16 +30,19 @@ static FILE* fDummyFile;
 
 /* Forward declarations of functions included in this translation unit. */
 
-// Creates the main window with CreateWindowW()
-BOOL InitInstance(HINSTANCE, int);
-
-// Window procedure function https://learn.microsoft.com/en-us/windows/win32/api/winuser/nc-winuser-wndproc
-static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-
 // Registers the window class.
 ATOM RegisterWndClass(HINSTANCE hInstance);
 
+// Creates the main window with CreateWindowW()
+BOOL InitInstance(HINSTANCE hInstance, int nCmdShow);
+
+// Window procedure function https://learn.microsoft.com/en-us/windows/win32/api/winuser/nc-winuser-wndproc
+static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
 // Message handler for the "About" dialog box.
-INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK AboutDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+
+// Returns the HINSTANCE of a given Window's HWND
+HINSTANCE GetHinstanceFromHwnd(HWND hWnd);
 
 #endif // ABOUT_WIN_H_

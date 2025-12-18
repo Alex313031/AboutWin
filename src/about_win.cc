@@ -134,13 +134,14 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
 //  WM_RESIZE   - Handle window resizing
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
   switch (message) {
+    // Handle commands sent to window via wParam
     case WM_COMMAND: {
       int wmId = LOWORD(wParam);
       // Parse the menu selections:
       switch (wmId) {
         case IDM_ABOUT:
           // Show "About" dialog box
-          DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+          DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, AboutDlgProc);
           break;
         case IDM_EXIT:
           // Send WM_DESTROY message to close window 
@@ -150,6 +151,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
           return DefWindowProc(hWnd, message, wParam, lParam);
       }
     } break;
+    // Begin painting
     case WM_PAINT: {
       PAINTSTRUCT ps;
       HDC hdc = BeginPaint(hWnd, &ps);
@@ -158,8 +160,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       }
       EndPaint(hWnd, &ps);
     } break;
+    // Get/Set min/max window size
+    case WM_GETMINMAXINFO: {
+      // Set the minimum size for the window
+      LPMINMAXINFO pMinMaxInfo = (LPMINMAXINFO)lParam;
+      pMinMaxInfo->ptMinTrackSize.x = 300;
+      pMinMaxInfo->ptMinTrackSize.y = 150;
+    } break;
+    // Handle resize events
+    case WM_SIZE: {
+    } break;
+    // When close button is pressed
+    case WM_CLOSE:
+      PostQuitMessage(0); // Exit the application
+      break;
+    // Handle destroy message
     case WM_DESTROY:
-      // Exit the application
       PostQuitMessage(0);
       break;
     // Fall through to DefWindowProc, any unhandled messages will be sent here
@@ -171,15 +187,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 }
 
 // Processes window messages for the "About" dialog box window procedure.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+INT_PTR CALLBACK AboutDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
   UNREFERENCED_PARAMETER(lParam);
 
   bool AboutHandled = false; // Stores status of whether dialog has been handled user-wise.
+  const HICON kSmallIcon = LoadIcon(GetHinstanceFromHwnd(hDlg), MAKEINTRESOURCE(IDI_SMALL));
   switch (message) {
-    case WM_INITDIALOG:
-      // Showed the dialog
+    case WM_INITDIALOG: {
+      // Set icon in titlebar of about dialog
+      SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)kSmallIcon);
+      SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM)kSmallIcon);
       AboutHandled = true;
-      break;
+    } break;
     case WM_COMMAND:
       // Exit the dialog
       if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) {
@@ -192,10 +211,19 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
         }
       } break;
     default:
-      AboutHandled = false;
       break;
   }
 
   // About dialog failed
   return (INT_PTR)AboutHandled;
+}
+
+// Grabs the HINSTANCE of a given Window's HWND
+HINSTANCE GetHinstanceFromHwnd(HWND hWnd) {
+  // GetWindowLongPtr is the recommended function for 64-bit compatibility
+  LONG_PTR hInstancePtr = GetWindowLongPtr(hWnd, GWLP_HINSTANCE);
+  // Cast the result to HINSTANCE
+  HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(hInstancePtr);
+
+  return hInstance;
 }
