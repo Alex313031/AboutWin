@@ -1,5 +1,11 @@
 # Copyright 2025 Alex313031
 
+group("aboutwin") {
+  public_deps = [
+    ":about_win",
+  ]
+}
+
 executable("about_win") {
   configs -= [ "//build/config/win:console_subsystem" ]
   configs += [
