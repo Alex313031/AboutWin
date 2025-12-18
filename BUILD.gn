@@ -1,0 +1,23 @@
+# Copyright 2025 Alex313031
+
+executable("about_win") {
+  configs -= [ "//build/config/win:console_subsystem" ]
+  configs += [
+    "//build/config/win:windowed_subsystem",
+    ":about_win_config",
+  ]
+  sources = [
+    "src/about_win.cc",
+    "src/about_win.h",
+    "src/framework.h",
+    "src/resource.h",
+    "src/resource.rc",
+    "src/version.h",
+  ]
+}
+
+config("about_win_config") {
+  include_dirs = [
+    "src",
+  ]
+}
