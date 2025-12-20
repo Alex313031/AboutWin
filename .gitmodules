@@ -1,0 +1,4 @@
+[submodule "osinfo"]
+	path = osinfo
+	url = https://github.com/Alex313031/osinfo.git
+	branch = main
