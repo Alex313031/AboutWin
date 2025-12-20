@@ -7,8 +7,15 @@
 
 HINSTANCE g_hInst;
 HWND hTextOut;
+HWND hGetInfoButton;
+HWND hRefreshButton;
+HWND hClearButton;
+HWND hAboutButton;
+HWND hStatusBar;
 
 static std::wstring textout;
+static int current_width;
+static int current_height;
 
 // The main entry point, equivalent to int main()
 int APIENTRY wWinMain(HINSTANCE hInstance,
@@ -20,6 +27,11 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
   // Import ComCtl32.dll
   InitCommonControls();
+  // Check that we can load osinfo.dll and run init function.
+  if (!InitOsInfoDll()) {
+    MessageBoxW(nullptr, L"osinfo.dll init failed!", L"Error!", MB_OK | MB_ICONERROR);
+    return -1;
+  }
 
   // Allow and allocate conhost for cmd.exe logging window
   if (!AllocConsole()) {
@@ -116,7 +128,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
   if (!hWnd) {
     success = false;
   } else {
-    ShowText(hWnd);
     // Actually show the window (or hide it).
     ShowWindow(hWnd, nCmdShow);
 
@@ -127,6 +138,100 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
   return success;
 }
 
+void InitControls(HWND hWnd) {
+  // Create text control
+  hTextOut = CreateWindowExW(0, WC_EDIT, nullptr,
+      WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE |
+      ES_AUTOVSCROLL | ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL,
+      STATIC_LEFT,
+      STATIC_TOP,
+      200,
+      300,
+      hWnd, (HMENU)IDC_TEXT1, g_hInst, nullptr);
+  // Main "get info" button
+  hGetInfoButton = CreateWindowExW(0, WC_BUTTON, L"Get Info!",
+      WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+      STATIC_LEFT,
+      300,
+      BUTTON_WIDTH,
+      BUTTON_HEIGHT,
+      hWnd, (HMENU)IDC_GETINFO, g_hInst, nullptr
+  );
+  hRefreshButton = CreateWindowExW(0, WC_BUTTON, L"Refresh",
+      WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+      STATIC_LEFT + BUTTON_WIDTH + INTRA_PAD,
+      300,
+      BUTTON_WIDTH,
+      BUTTON_HEIGHT,
+      hWnd, (HMENU)IDC_REFRESH, g_hInst, nullptr
+  );
+  hClearButton = CreateWindowExW(0, WC_BUTTON, L"Clear",
+      WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+      STATIC_LEFT,
+      300 + BUTTON_HEIGHT,
+      BUTTON_WIDTH,
+      BUTTON_HEIGHT,
+      hWnd, (HMENU)IDC_CLEAR, g_hInst, nullptr
+  );
+  hAboutButton = CreateWindowExW(0, WC_BUTTON, L"About",
+      WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+      STATIC_LEFT + BUTTON_WIDTH + INTRA_PAD,
+      300 + BUTTON_HEIGHT,
+      BUTTON_WIDTH,
+      BUTTON_HEIGHT,
+      hWnd, (HMENU)IDC_ABOUT, g_hInst, nullptr
+  );
+  // Lastly, create the status bar
+  hStatusBar = CreateWindowExW(
+      0, STATUSCLASSNAME, nullptr,
+      WS_CHILD | WS_VISIBLE | SBARS_SIZEGRIP,
+      0,
+      0,
+      0,
+      0,
+      hWnd, nullptr, g_hInst, nullptr
+  );
+  const int kStatusSplit = DEFAULT_WIDTH - 100;
+  const int kStatusParts[2] = { kStatusSplit, -1 }; // -1 = extend to right edge
+  SendMessageW(hStatusBar, SB_SETPARTS, 2, (LPARAM)kStatusParts);
+  SendMessageW(hStatusBar, SB_SETTEXT, 1, (LPARAM)L"Status");
+}
+
+void HandleResize(HWND hWnd) {
+  const int width = current_width;
+  const int height = current_height;
+  if (hWnd) {
+    const int textedit_bottom = height - BOTTOM_AREA - END_PADDING;
+    const int textedit_right = width - END_PADDING;
+    const int button_top = textedit_bottom + END_PADDING;
+    const int button2_top = button_top + BUTTON_HEIGHT + INTRA_PAD;
+    const int buttoncol2 = STATIC_LEFT + BUTTON_WIDTH + INTRA_PAD;
+    const int kStatusSplit = width - 100;
+    MoveWindow(hTextOut, STATIC_LEFT, STATIC_TOP, textedit_right, textedit_bottom, TRUE);
+    MoveWindow(hGetInfoButton, STATIC_LEFT, button_top, BUTTON_WIDTH, BUTTON_HEIGHT, TRUE);
+    MoveWindow(hRefreshButton, buttoncol2, button_top, BUTTON_WIDTH, BUTTON_HEIGHT, TRUE);
+    MoveWindow(hClearButton, STATIC_LEFT, button2_top, BUTTON_WIDTH, BUTTON_HEIGHT, TRUE);
+    MoveWindow(hAboutButton, textedit_right - BUTTON_WIDTH - INTRA_PAD, button2_top, BUTTON_WIDTH, BUTTON_HEIGHT, TRUE);
+    if (hStatusBar) {
+      SendMessageW(hStatusBar, WM_SIZE, 0, 0);
+      const int kStatusParts[2] = { kStatusSplit, -1 };
+      SendMessageW(hStatusBar, SB_SETPARTS, 2, (LPARAM)kStatusParts);
+    }
+  } else {
+    return;
+  }
+}
+
+std::wstring GetWinInfo() {
+  std::wostringstream wostr;
+  wostr << std::fixed << std::setprecision(8) << std::showbase << std::hex;
+  wostr << L"(Windows NT " << GetWinVersionW() << L")\r\n"
+        << L"System reported " << GetOSNameW() << L"\r\n";
+  wostr << std::dec << std::endl;
+  const std::wstring retval = wostr.str();
+  return retval;
+}
+
 void AppendTextToEditControl(HWND hWnd, const std::wstring line) {
   const WCHAR* text = line.c_str();
   int length = GetWindowTextLength(hWnd); // Get current text length
@@ -135,11 +240,19 @@ void AppendTextToEditControl(HWND hWnd, const std::wstring line) {
 }
 
 void ShowText(HWND hWnd) {
-  textout = L"testtext winver";
-  hTextOut = CreateWindowExW(0, L"EDIT", nullptr,
-      WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL,
-      6, 6, 300, 200, hWnd, (HMENU)IDC_TEXT1, g_hInst, nullptr);
+  textout = GetWinInfo();
   AppendTextToEditControl(hTextOut, textout);
+  std::wstring kNTVer = L"hawk";
+  const unsigned long short_nt_ver = GetShortNTVer();
+  std::wostringstream wostr;
+  wostr << L"Raw NTVER: "
+        << std::fixed << std::setprecision(8) << std::showbase << std::hex
+        << short_nt_ver << std::dec << std::endl;
+  kNTVer = wostr.str();
+  std::wcout << kNTVer.c_str();
+  if (hStatusBar) {
+    SendMessageW(hStatusBar, SB_SETTEXT, 0, (LPARAM)kNTVer.c_str());
+  }
 }
 
 //  Processes window messages for the main window.
@@ -155,7 +268,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       int wmId = LOWORD(wParam);
       // Parse the menu selections:
       switch (wmId) {
+        case IDC_TEXT1:
+          break;
+        case IDC_GETINFO:
+          ShowText(hWnd);
+          break;
+        case IDC_REFRESH:
+          SetWindowTextW(hTextOut, kBlank);
+          SendMessageW(hStatusBar, SB_SETTEXT, 0, (LPARAM)kBlank);
+          ShowText(hWnd);
+          break;
+        case IDC_CLEAR:
+        case IDM_CLEAR:
+          SetWindowTextW(hTextOut, L"");
+          SendMessageW(hStatusBar, SB_SETTEXT, 0, (LPARAM)kBlank);
+          std::wcout << L"Cleared controls" << std::endl;
+          break;
+        case IDM_HELP:
+          MessageBoxW(hWnd, L"No Help implemented yet", L"Help", MB_OK | MB_ICONINFORMATION);
+          break;
         case IDM_ABOUT:
+        case IDC_ABOUT:
           // Show "About" dialog box
           DialogBoxW(g_hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, AboutDlgProc);
           break;
@@ -176,6 +309,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       }
       EndPaint(hWnd, &ps);
     } break;
+    case WM_CREATE: {
+      InitControls(hWnd);
+    } break;
     // Get/Set min/max window size
     case WM_GETMINMAXINFO: {
       // Set the minimum size for the window
@@ -185,9 +321,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     } break;
     // Handle resize events
     case WM_SIZE: {
-      int width = LOWORD(lParam);
-      int height = HIWORD(lParam);
-      MoveWindow(hTextOut, 6, 6, width - 12, height - 12, TRUE);
+      current_width = LOWORD(lParam);
+      current_height = HIWORD(lParam);
+      HandleResize(hWnd);
     } break;
     // When close button is pressed
     case WM_CLOSE:

@@ -73,11 +73,12 @@ IDC_ABOUTWIN MENU
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&Refresh",  IDM_EXIT
-        MENUITEM "E&xit",     IDM_EXIT
+        MENUITEM "&Clear",  IDM_CLEAR
+        MENUITEM "E&xit",   IDM_EXIT
     END
     POPUP "&Help"
     BEGIN
+        MENUITEM "&Help",   IDM_HELP
         MENUITEM "&About",  IDM_ABOUT
     END
 END

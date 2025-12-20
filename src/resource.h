@@ -17,10 +17,16 @@
 // Menu items
 #define IDM_EXIT                    200
 #define IDM_ABOUT                   201
+#define IDM_HELP                    202
+#define IDM_CLEAR                   203
 
 // Controls
 #define IDC_ABOUTWIN                300
 #define IDC_TEXT1                   301
+#define IDC_GETINFO                 302
+#define IDC_REFRESH                 303
+#define IDC_CLEAR                   304
+#define IDC_ABOUT                   305
 
 // Main application resource
 #define IDR_MAINFRAME               128

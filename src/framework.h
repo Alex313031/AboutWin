@@ -26,7 +26,10 @@
 #include <tchar.h> // For TCHAR, and automatically deducing wchar_t type
 
 // C++ STL Headers
-#include <iostream> // std::cout and std::wcout
+#include <cstdint> // Standard C number types
+#include <iomanip> // std::setprecision
+#include <iostream> // std::cout std::wcout
+#include <sstream> // std::ostringstream std::wostringstream
 #include <string> // std::string std::wstring
 
 #endif // ABOUT_FRAMEWORK_H_
