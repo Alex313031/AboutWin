@@ -20,10 +20,17 @@ executable("about_win") {
     "src/resource.rc",
     "src/version.h",
   ]
+  deps = [
+    "osinfo:osinfo",
+  ]
+  public_deps = [
+    "osinfo:osinfo_dll",
+  ]
 }
 
 config("about_win_config") {
   include_dirs = [
     "src",
+    "osinfo",
   ]
 }

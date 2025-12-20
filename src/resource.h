@@ -5,6 +5,7 @@
 // Icons
 #define IDI_ABOUTWIN                101
 #define IDI_SMALL                   102
+#define IDI_ABOUT                   199
 
 // App title
 #define IDS_APP_TITLE               103
@@ -19,7 +20,7 @@
 
 // Controls
 #define IDC_ABOUTWIN                300
-#define IDC_MYICON                  301
+#define IDC_TEXT1                   301
 
 // Main application resource
 #define IDR_MAINFRAME               128

@@ -5,7 +5,10 @@
 
 #include "framework.h"
 
-HINSTANCE hInst;
+HINSTANCE g_hInst;
+HWND hTextOut;
+
+static std::wstring textout;
 
 // The main entry point, equivalent to int main()
 int APIENTRY wWinMain(HINSTANCE hInstance,
@@ -92,26 +95,28 @@ ATOM RegisterWndClass(HINSTANCE hInstance) {
 // Saves global instance handle and creates the main window.
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
   bool success = false; // 
-  hInst = hInstance; // Store instance handle in our global variable
+  g_hInst = hInstance; // Store instance handle in our global variable
 
   // The all important Win32 function that every GUI app must have to create
   // the Window.
-  HWND hWnd = CreateWindowW(szWindowClass,
-                            szTitle,
-                            WS_OVERLAPPEDWINDOW,
-                            CW_USEDEFAULT,
-                            0,
-                            CW_USEDEFAULT,
-                            0,
-                            nullptr,
-                            nullptr,
-                            hInstance,
-                            nullptr);
+  HWND hWnd = CreateWindowExW(WS_EX_WINDOWEDGE,
+                              szWindowClass,
+                              szTitle,
+                              WS_OVERLAPPEDWINDOW,
+                              CW_USEDEFAULT,
+                              CW_USEDEFAULT,
+                              DEFAULT_WIDTH,
+                              DEFAULT_HEIGHT,
+                              nullptr,
+                              nullptr,
+                              hInstance,
+                              nullptr);
 
   // Early fail if we can't create the window.
   if (!hWnd) {
     success = false;
   } else {
+    ShowText(hWnd);
     // Actually show the window (or hide it).
     ShowWindow(hWnd, nCmdShow);
 
@@ -119,8 +124,22 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow) {
     success = UpdateWindow(hWnd); // Start painting by sending the WM_PAINT message
   }
 
-  
   return success;
+}
+
+void AppendTextToEditControl(HWND hWnd, const std::wstring line) {
+  const WCHAR* text = line.c_str();
+  int length = GetWindowTextLength(hWnd); // Get current text length
+  SendMessageW(hWnd, EM_SETSEL, (WPARAM)length, (LPARAM)length); // Set cursor at the end
+  SendMessageW(hWnd, EM_REPLACESEL, FALSE, (LPARAM)text); // Append the text
+}
+
+void ShowText(HWND hWnd) {
+  textout = L"testtext winver";
+  hTextOut = CreateWindowExW(0, L"EDIT", nullptr,
+      WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL,
+      6, 6, 300, 200, hWnd, (HMENU)IDC_TEXT1, g_hInst, nullptr);
+  AppendTextToEditControl(hTextOut, textout);
 }
 
 //  Processes window messages for the main window.
@@ -138,7 +157,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       switch (wmId) {
         case IDM_ABOUT:
           // Show "About" dialog box
-          DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, AboutDlgProc);
+          DialogBoxW(g_hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, AboutDlgProc);
           break;
         case IDM_EXIT:
           // Send WM_DESTROY message to close window 
@@ -161,11 +180,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     case WM_GETMINMAXINFO: {
       // Set the minimum size for the window
       LPMINMAXINFO pMinMaxInfo = (LPMINMAXINFO)lParam;
-      pMinMaxInfo->ptMinTrackSize.x = 300;
-      pMinMaxInfo->ptMinTrackSize.y = 150;
+      pMinMaxInfo->ptMinTrackSize.x = MIN_WIDTH;
+      pMinMaxInfo->ptMinTrackSize.y = MIN_HEIGHT;
     } break;
     // Handle resize events
     case WM_SIZE: {
+      int width = LOWORD(lParam);
+      int height = HIWORD(lParam);
+      MoveWindow(hTextOut, 6, 6, width - 12, height - 12, TRUE);
     } break;
     // When close button is pressed
     case WM_CLOSE:
