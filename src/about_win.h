@@ -21,6 +21,7 @@ extern HWND hTextOut;
 extern HWND hGetInfoButton;
 extern HWND hRefreshButton;
 extern HWND hClearButton;
+extern HWND hCloseButton;
 extern HWND hAboutButton;
 extern HWND hStatusBar;
 
@@ -38,7 +39,7 @@ static const LPCWSTR kBlank = L"";
 // Static layout constants
 static constexpr unsigned int MIN_WIDTH = 200;
 static constexpr unsigned int MIN_HEIGHT = 300;
-static constexpr unsigned int DEFAULT_WIDTH = 400;
+static constexpr unsigned int DEFAULT_WIDTH = 480;
 static constexpr unsigned int DEFAULT_HEIGHT = 480;
 
 static constexpr unsigned int BOTTOM_AREA = 100;
@@ -82,7 +83,13 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 // Message handler for the "About" dialog box.
 INT_PTR CALLBACK AboutDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
+// Creates a message box asking the user to confirm if they want to exit.
+int ConfirmExit(HWND hWnd);
+
 // Returns the HINSTANCE of a given Window's HWND
 HINSTANCE GetHinstanceFromHwnd(HWND hWnd);
+
+// Returns the app name and version string
+static std::wstring GetAppVersion();
 
 #endif // ABOUT_WIN_H_

@@ -10,10 +10,10 @@ HWND hTextOut;
 HWND hGetInfoButton;
 HWND hRefreshButton;
 HWND hClearButton;
+HWND hCloseButton;
 HWND hAboutButton;
 HWND hStatusBar;
 
-static std::wstring textout;
 static int current_width;
 static int current_height;
 
@@ -27,6 +27,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
   // Import ComCtl32.dll
   InitCommonControls();
+
   // Check that we can load osinfo.dll and run init function.
   if (!InitOsInfoDll()) {
     MessageBoxW(nullptr, L"osinfo.dll init failed!", L"Error!", MB_OK | MB_ICONERROR);
@@ -63,7 +64,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
   if (!InitInstance(hInstance, nCmdShow)) {
     return FALSE;
   } else {
-    std::wcout << L"Welcome to AboutWin ver. " << VERSION_STRING << std::endl;
+    std::wcout << L"Welcome to " << GetAppVersion() << std::endl;
   }
 
   // Load keyboard accelerators.
@@ -173,6 +174,14 @@ void InitControls(HWND hWnd) {
       BUTTON_HEIGHT,
       hWnd, (HMENU)IDC_CLEAR, g_hInst, nullptr
   );
+  hCloseButton = CreateWindowExW(0, WC_BUTTON, L"Close",
+      WS_CHILD | WS_VISIBLE | WS_TABSTOP,
+      STATIC_LEFT,
+      300 + BUTTON_HEIGHT,
+      BUTTON_WIDTH,
+      BUTTON_HEIGHT,
+      hWnd, (HMENU)IDC_CLOSE, g_hInst, nullptr
+  );
   hAboutButton = CreateWindowExW(0, WC_BUTTON, L"About",
       WS_CHILD | WS_VISIBLE | WS_TABSTOP,
       STATIC_LEFT + BUTTON_WIDTH + INTRA_PAD,
@@ -191,43 +200,42 @@ void InitControls(HWND hWnd) {
       0,
       hWnd, nullptr, g_hInst, nullptr
   );
-  const int kStatusSplit = DEFAULT_WIDTH - 100;
-  const int kStatusParts[2] = { kStatusSplit, -1 }; // -1 = extend to right edge
+  const int kStatusParts[2] = { DEFAULT_WIDTH, -1 }; // -1 = extend to right edge
   SendMessageW(hStatusBar, SB_SETPARTS, 2, (LPARAM)kStatusParts);
+  SendMessageW(hStatusBar, SB_SETTEXT, 0, (LPARAM)GetAppVersion().c_str());
   SendMessageW(hStatusBar, SB_SETTEXT, 1, (LPARAM)L"Status");
 }
 
 void HandleResize(HWND hWnd) {
   const int width = current_width;
   const int height = current_height;
-  if (hWnd) {
+  if (!hWnd) {
+    return;
+  } else {
     const int textedit_bottom = height - BOTTOM_AREA - END_PADDING;
     const int textedit_right = width - END_PADDING;
-    const int button_top = textedit_bottom + END_PADDING;
+    const int button_top = textedit_bottom + INTRA_PAD + END_PADDING;
     const int button2_top = button_top + BUTTON_HEIGHT + INTRA_PAD;
     const int buttoncol2 = STATIC_LEFT + BUTTON_WIDTH + INTRA_PAD;
-    const int kStatusSplit = width - 100;
+    const int kStatusSplit = width - BUTTON_WIDTH;
     MoveWindow(hTextOut, STATIC_LEFT, STATIC_TOP, textedit_right, textedit_bottom, TRUE);
     MoveWindow(hGetInfoButton, STATIC_LEFT, button_top, BUTTON_WIDTH, BUTTON_HEIGHT, TRUE);
     MoveWindow(hRefreshButton, buttoncol2, button_top, BUTTON_WIDTH, BUTTON_HEIGHT, TRUE);
     MoveWindow(hClearButton, STATIC_LEFT, button2_top, BUTTON_WIDTH, BUTTON_HEIGHT, TRUE);
+    MoveWindow(hCloseButton, buttoncol2, button2_top, BUTTON_WIDTH, BUTTON_HEIGHT, TRUE);
     MoveWindow(hAboutButton, textedit_right - BUTTON_WIDTH - INTRA_PAD, button2_top, BUTTON_WIDTH, BUTTON_HEIGHT, TRUE);
     if (hStatusBar) {
       SendMessageW(hStatusBar, WM_SIZE, 0, 0);
       const int kStatusParts[2] = { kStatusSplit, -1 };
       SendMessageW(hStatusBar, SB_SETPARTS, 2, (LPARAM)kStatusParts);
     }
-  } else {
-    return;
   }
 }
 
 std::wstring GetWinInfo() {
   std::wostringstream wostr;
-  wostr << std::fixed << std::setprecision(8) << std::showbase << std::hex;
   wostr << L"(Windows NT " << GetWinVersionW() << L")\r\n"
         << L"System reported " << GetOSNameW() << L"\r\n";
-  wostr << std::dec << std::endl;
   const std::wstring retval = wostr.str();
   return retval;
 }
@@ -240,7 +248,7 @@ void AppendTextToEditControl(HWND hWnd, const std::wstring line) {
 }
 
 void ShowText(HWND hWnd) {
-  textout = GetWinInfo();
+  static std::wstring textout = GetWinInfo();
   AppendTextToEditControl(hTextOut, textout);
   std::wstring kNTVer = L"hawk";
   const unsigned long short_nt_ver = GetShortNTVer();
@@ -285,6 +293,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
           std::wcout << L"Cleared controls" << std::endl;
           break;
         case IDM_HELP:
+          std::wcout << L"Opened help" << std::endl;
           MessageBoxW(hWnd, L"No Help implemented yet", L"Help", MB_OK | MB_ICONINFORMATION);
           break;
         case IDM_ABOUT:
@@ -292,6 +301,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
           // Show "About" dialog box
           DialogBoxW(g_hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, AboutDlgProc);
           break;
+        case IDC_CLOSE: {
+          ConfirmExit(hWnd);
+        } break;
         case IDM_EXIT:
           // Send WM_DESTROY message to close window 
           DestroyWindow(hWnd);
@@ -373,6 +385,23 @@ INT_PTR CALLBACK AboutDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
   return (INT_PTR)AboutHandled;
 }
 
+int ConfirmExit(HWND hWnd) {
+  int user_response_code;
+  user_response_code =
+      MessageBoxW(nullptr, L"Are you sure you want to exit?", L"Confirm Exit",
+                  MB_YESNO | MB_ICONASTERISK | MB_DEFBUTTON1);
+  switch (user_response_code) {
+    case IDNO:
+    case IDCANCEL:
+      break;
+    case IDYES:
+      DestroyWindow(hWnd);
+    default:
+      break;
+  }
+  return user_response_code;
+}
+
 // Grabs the HINSTANCE of a given Window's HWND
 HINSTANCE GetHinstanceFromHwnd(HWND hWnd) {
   // GetWindowLongPtr is the recommended function for 64-bit compatibility
@@ -381,4 +410,10 @@ HINSTANCE GetHinstanceFromHwnd(HWND hWnd) {
   HINSTANCE hInstance = reinterpret_cast<HINSTANCE>(hInstancePtr);
 
   return hInstance;
+}
+
+static std::wstring GetAppVersion() {
+  std::wostringstream wostr;
+  wostr << L"AboutWin ver. " << VERSION_STRING;
+  return wostr.str();
 }

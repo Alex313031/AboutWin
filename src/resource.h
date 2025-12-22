@@ -27,6 +27,7 @@
 #define IDC_REFRESH                 303
 #define IDC_CLEAR                   304
 #define IDC_ABOUT                   305
+#define IDC_CLOSE                   306
 
 // Main application resource
 #define IDR_MAINFRAME               128

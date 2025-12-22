@@ -90,6 +90,7 @@ BEGIN
     "?",       IDM_ABOUT,  ASCII,    ALT // "?"
     VK_OEM_2,  IDM_ABOUT,  VIRTKEY,  ALT // "/"
     0x51,      IDM_EXIT,   VIRTKEY,  CONTROL // "Q"
+    VK_ESCAPE, IDM_EXIT,   VIRTKEY,  NOINVERT// "Esc"
 END
 
 // About Dialog Box
